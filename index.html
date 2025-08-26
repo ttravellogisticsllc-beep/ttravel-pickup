@@ -1,4 +1,7 @@
-# Update index.html to add (1) WEEKEND time-window options for individuals and (2) a Review/Confirm screen before sending
+# Update index.html per the user's requests:
+# - INDIVIDUAL: time windows in AM/PM, and custom times formatted to AM/PM
+# - COMPANY: review/confirm already present; enforce letters-only name; limit pallets to max 3
+# - COMPANY: split size into separate numeric L, W, H inputs (numbers only)
 html = r"""<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -35,7 +38,6 @@ html = r"""<!DOCTYPE html>
   .tag { display:inline-block; padding:6px 10px; border:1px solid #cfd6df; border-radius:8px; cursor:pointer; margin-top:6px; }
   .review { background:#f9fbff; border:1px solid #dbe7ff; border-radius:12px; padding:14px; margin-top:10px; }
   .review h3 { margin:4px 0 10px; color:#0b4aa0; font-size:18px; }
-  .review .line { margin:6px 0; }
 </style>
 </head>
 <body>
@@ -58,12 +60,28 @@ html = r"""<!DOCTYPE html>
     <!-- Company form -->
     <form id="formCompany" class="card" novalidate>
       <div class="split">
-        <div><label>Company name</label><input id="c_company" required maxlength="120"><div class="error" id="e_c_company">Company name is required.</div></div>
-        <div><label>Your name</label><input id="c_name" required pattern="[A-Za-z .'\-]+"><div class="error" id="e_c_name">Letters only.</div></div>
+        <div>
+          <label>Company name</label>
+          <input id="c_company" required maxlength="120">
+          <div class="error" id="e_c_company">Company name is required.</div>
+        </div>
+        <div>
+          <label>Your name</label>
+          <input id="c_name" required pattern="[A-Za-z .'\-]+" placeholder="First Last">
+          <div class="error" id="e_c_name">Letters only.</div>
+        </div>
       </div>
       <div class="split">
-        <div><label>Phone</label><input id="c_phone" required type="tel" inputmode="tel" pattern="[\d\-\+\(\) ]{7,20}" oninput="digitsOnly(this)"><div class="error" id="e_c_phone">Valid phone required.</div></div>
-        <div><label>Email</label><input id="c_email" type="email" required><div class="error" id="e_c_email">Valid email required.</div></div>
+        <div>
+          <label>Phone</label>
+          <input id="c_phone" required type="tel" inputmode="tel" pattern="[\d\-\+\(\) ]{7,20}" oninput="digitsOnly(this)" placeholder="(555) 555-5555">
+          <div class="error" id="e_c_phone">Valid phone required.</div>
+        </div>
+        <div>
+          <label>Email</label>
+          <input id="c_email" type="email" required placeholder="name@company.com">
+          <div class="error" id="e_c_email">Valid email required.</div>
+        </div>
       </div>
       <div class="split">
         <div><label>Touchless at pickup</label><select id="c_touch_pickup"><option>No</option><option>Yes</option></select></div>
@@ -73,19 +91,43 @@ html = r"""<!DOCTYPE html>
         <div><label>Pickup dock available</label><select id="c_dock"><option>No</option><option>Yes</option></select></div>
         <div><label>Forklift or pallet jack at pickup</label><select id="c_lift"><option>None</option><option>Forklift</option><option>Pallet jack</option><option>Both</option></select></div>
       </div>
-      <label>Commodity or description</label><input id="c_commodity" maxlength="140">
+
+      <label>Commodity or description</label>
+      <input id="c_commodity" maxlength="140">
+
       <div class="split">
-        <div><label>Pallets</label><input id="c_pallets" type="number" min="0" step="1" inputmode="numeric"></div>
-        <div><label>Pieces</label><input id="c_pieces" type="number" min="0" step="1" inputmode="numeric"></div>
+        <div>
+          <label>Pallets</label>
+          <input id="c_pallets" type="number" min="0" max="3" step="1" inputmode="numeric" placeholder="0">
+          <div class="help">Max 3 pallets.</div>
+        </div>
+        <div>
+          <label>Pieces</label>
+          <input id="c_pieces" type="number" min="0" step="1" inputmode="numeric" placeholder="0">
+        </div>
       </div>
+
       <div class="split">
-        <div><label>Total weight (lb)</label><input id="c_weight" type="number" min="0" max="3200" step="1" inputmode="numeric"></div>
-        <div><label>Max size (in) — L × W × H</label><input id="c_dims" pattern="^\s*\d+\s*[x×]\s*\d+\s*[x×]\s*\d+\s*$" placeholder="48 × 40 × 60"><div class="help">Use numbers like 48 × 40 × 60</div></div>
+        <div>
+          <label>Total weight (lb)</label>
+          <input id="c_weight" type="number" min="0" max="3200" step="1" inputmode="numeric" placeholder="0">
+        </div>
+        <div>
+          <label>Max size (in)</label>
+          <div class="split">
+            <div><label>Length (L)</label><input id="c_len" type="number" min="0" step="1" inputmode="numeric" placeholder="48"></div>
+            <div><label>Width (W)</label><input id="c_wid" type="number" min="0" step="1" inputmode="numeric" placeholder="40"></div>
+          </div>
+          <div><label>Height (H)</label><input id="c_hei" type="number" min="0" step="1" inputmode="numeric" placeholder="60"></div>
+          <div class="help">Numbers only. We’ll format as L × W × H.</div>
+        </div>
       </div>
+
       <div class="split">
         <div><label>Hazmat</label><select id="c_haz"><option>No</option><option>Yes</option></select></div>
         <div><label>Temp control needed</label><select id="c_temp"><option>No</option><option>Yes</option></select></div>
       </div>
+
       <div class="split">
         <div>
           <label>Pickup address</label>
@@ -102,10 +144,12 @@ html = r"""<!DOCTYPE html>
           <div class="error" id="e_c_do_addr">Delivery address is required.</div>
         </div>
       </div>
+
       <div class="split">
         <div><label>Pickup window</label><input id="c_pu_win" required placeholder="Date and time range"><div class="error" id="e_c_pu_win">Pickup window is required.</div></div>
         <div><label>Delivery window</label><input id="c_do_win" required placeholder="Date and time range"><div class="error" id="e_c_do_win">Delivery window is required.</div></div>
       </div>
+
       <div class="split">
         <div><label>Pickup contact name and phone</label><input id="c_pu_ct" placeholder="Name and phone"></div>
         <div><label>Delivery contact name and phone</label><input id="c_do_ct" placeholder="Name and phone"></div>
@@ -125,7 +169,9 @@ html = r"""<!DOCTYPE html>
       </div>
 
       <label>PO or reference (optional)</label><input id="c_ref" maxlength="64">
+
       <label>Notes for driver</label><textarea id="c_notes" maxlength="400"></textarea>
+
       <div><label class="pill"><input id="c_det" type="checkbox"> I understand detention may apply after quick-turn wait time</label></div>
 
       <button type="button" class="cta" onclick="reviewCompany()">Review & Send</button>
@@ -133,7 +179,7 @@ html = r"""<!DOCTYPE html>
       <!-- Company Review/Confirm -->
       <div id="reviewCompany" class="review hidden">
         <h3>Review your info</h3>
-        <div id="companyReviewLines"></div>
+        <pre id="companyReviewLines" style="white-space:pre-wrap;"></pre>
         <div class="row-inline" style="margin-top:10px;">
           <button class="btn secondary" type="button" onclick="editCompany()">Edit</button>
           <button class="btn" type="button" onclick="sendCompany()">Confirm & Send</button>
@@ -147,7 +193,7 @@ html = r"""<!DOCTYPE html>
       </div>
     </form>
 
-    <!-- Individual form with WEEKEND windows + Review/Confirm -->
+    <!-- Individual form with AM/PM windows and Review/Confirm -->
     <form id="formPerson" class="card hidden" novalidate>
       <div class="split">
         <div><label>Your name</label><input id="p_name" required pattern="[A-Za-z .'\-]+" placeholder="First Last"><div class="error" id="e_p_name">Letters only.</div></div>
@@ -195,20 +241,20 @@ html = r"""<!DOCTYPE html>
           <select id="p_pu_win_choice" required onchange="toggleCustom('p_pu_win_choice','p_pu_custom')">
             <option value="">Select a window</option>
             <option>ASAP</option>
-            <option>8–10 am</option>
-            <option>10 am–12 pm</option>
-            <option>12–2 pm</option>
-            <option>2–4 pm</option>
-            <option>4–6 pm</option>
-            <option>6–8 pm</option>
+            <option>8–10 AM</option>
+            <option>10 AM–12 PM</option>
+            <option>12–2 PM</option>
+            <option>2–4 PM</option>
+            <option>4–6 PM</option>
+            <option>6–8 PM</option>
             <option>After hours</option>
             <option>Weekend (any)</option>
-            <option>Sat morning (9–12)</option>
-            <option>Sat afternoon (12–4)</option>
-            <option>Sat evening (4–8)</option>
-            <option>Sun morning (9–12)</option>
-            <option>Sun afternoon (12–4)</option>
-            <option>Sun evening (4–8)</option>
+            <option>Sat morning (9 AM–12 PM)</option>
+            <option>Sat afternoon (12–4 PM)</option>
+            <option>Sat evening (4–8 PM)</option>
+            <option>Sun morning (9 AM–12 PM)</option>
+            <option>Sun afternoon (12–4 PM)</option>
+            <option>Sun evening (4–8 PM)</option>
             <option value="custom">Custom window</option>
           </select>
           <div id="p_pu_custom" class="hidden">
@@ -227,20 +273,20 @@ html = r"""<!DOCTYPE html>
           <select id="p_do_win_choice" required onchange="toggleCustom('p_do_win_choice','p_do_custom')">
             <option value="">Select a window</option>
             <option>ASAP</option>
-            <option>8–10 am</option>
-            <option>10 am–12 pm</option>
-            <option>12–2 pm</option>
-            <option>2–4 pm</option>
-            <option>4–6 pm</option>
-            <option>6–8 pm</option>
+            <option>8–10 AM</option>
+            <option>10 AM–12 PM</option>
+            <option>12–2 PM</option>
+            <option>2–4 PM</option>
+            <option>4–6 PM</option>
+            <option>6–8 PM</option>
             <option>After hours</option>
             <option>Weekend (any)</option>
-            <option>Sat morning (9–12)</option>
-            <option>Sat afternoon (12–4)</option>
-            <option>Sat evening (4–8)</option>
-            <option>Sun morning (9–12)</option>
-            <option>Sun afternoon (12–4)</option>
-            <option>Sun evening (4–8)</option>
+            <option>Sat morning (9 AM–12 PM)</option>
+            <option>Sat afternoon (12–4 PM)</option>
+            <option>Sat evening (4–8 PM)</option>
+            <option>Sun morning (9 AM–12 PM)</option>
+            <option>Sun afternoon (12–4 PM)</option>
+            <option>Sun evening (4–8 PM)</option>
             <option value="custom">Custom window</option>
           </select>
           <div id="p_do_custom" class="hidden">
@@ -264,7 +310,7 @@ html = r"""<!DOCTYPE html>
       <!-- Person Review/Confirm -->
       <div id="reviewPerson" class="review hidden">
         <h3>Review your info</h3>
-        <div id="personReviewLines"></div>
+        <pre id="personReviewLines" style="white-space:pre-wrap;"></pre>
         <div class="row-inline" style="margin-top:10px;">
           <button class="btn secondary" type="button" onclick="editPerson()">Edit</button>
           <button class="btn" type="button" onclick="sendPerson()">Confirm & Send</button>
@@ -318,6 +364,16 @@ html = r"""<!DOCTYPE html>
     row.classList.toggle('hidden', sel.value !== 'custom');
   }
 
+  // 12-hour AM/PM formatting for custom times
+  function fmt12(t){
+    if(!t) return "";
+    const [h,m] = t.split(":").map(Number);
+    const am = h < 12 || h === 24;
+    const h12 = ((h + 11) % 12) + 1;
+    const mm = String(m).padStart(2,'0');
+    return `${h12}:${mm} ${am ? 'AM' : 'PM'}`;
+  }
+
   // Geocode using OpenStreetMap Nominatim (USA)
   async function verifyAddress(inputId, statusId){
     const raw = document.getElementById(inputId).value.trim();
@@ -360,7 +416,7 @@ html = r"""<!DOCTYPE html>
     if(choice && choice!=='custom') return choice;
     const s = document.getElementById(customStartId).value;
     const e = document.getElementById(customEndId).value;
-    if(s && e) return s + "–" + e;
+    if(s && e) return fmt12(s) + "–" + fmt12(e);
     return "";
   }
   function validateWindow(choiceId, startId, endId, errId){
@@ -375,6 +431,7 @@ html = r"""<!DOCTYPE html>
   // Build text summaries
   function buildCompanySummary(){
     const acc = Array.from(document.querySelectorAll('.card input[type=checkbox]:checked')).map(x=>x.value);
+    const dims = [document.getElementById('c_len').value, document.getElementById('c_wid').value, document.getElementById('c_hei').value].filter(Boolean).join(" × ");
     return [
       "Pickup request — COMPANY",
       "",
@@ -392,7 +449,7 @@ html = r"""<!DOCTYPE html>
       "Pallets: " + document.getElementById('c_pallets').value,
       "Pieces: " + document.getElementById('c_pieces').value,
       "Total weight (lb): " + document.getElementById('c_weight').value,
-      "Max size (in): " + document.getElementById('c_dims').value,
+      "Max size (in): " + dims,
       "",
       "Hazmat: " + document.getElementById('c_haz').value,
       "Temp control: " + document.getElementById('c_temp').value,
@@ -457,7 +514,6 @@ html = r"""<!DOCTYPE html>
       requireField('c_do_win','e_c_do_win')
     ].every(Boolean);
     if(!ok){ window.scrollTo({top:0,behavior:'smooth'}); return; }
-
     const text = buildCompanySummary();
     document.getElementById('companyReviewLines').innerText = text;
     document.getElementById('reviewCompany').classList.remove('hidden');
@@ -485,7 +541,6 @@ html = r"""<!DOCTYPE html>
       validateWindow('p_do_win_choice','p_do_custom_start','p_do_custom_end','e_p_do_win')
     ].every(Boolean);
     if(!ok){ window.scrollTo({top:0,behavior:'smooth'}); return; }
-
     const text = buildPersonSummary();
     document.getElementById('personReviewLines').innerText = text;
     document.getElementById('reviewPerson').classList.remove('hidden');
@@ -499,7 +554,6 @@ html = r"""<!DOCTYPE html>
     mailto('ttravellogisticsllc@gmail.com','Pickup request — INDIVIDUAL',summary);
     window.scrollTo({top: document.getElementById('personCopy').offsetTop - 10, behavior:'smooth'});
   }
-
 </script>
 </body>
 </html>"""
