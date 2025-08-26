@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>TTravel Logistics — Schedule a Pickup</title>
+<style>
+  :root { --navy:#0b2341; --lime:#a7e63f; --gray:#5a626e; --light:#f5f7fa; }
+  * { box-sizing: border-box; }
+  body { font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; margin: 0; background: var(--light); color: #111; }
+  header { background: white; padding: 20px 16px; border-bottom: 2px solid #eaecef; text-align: center; }
+  h1 { margin: 0; color: var(--navy); font-size: 22px; }
+  p.sub { margin: 6px 0 0 0; color: var(--gray); font-size: 14px; }
+  .wrap { max-width: 800px; margin: 16px auto 24px; padding: 0 14px 24px; }
+  .card { background: white; border-radius: 14px; padding: 18px; margin-top: 14px; box-shadow: 0 6px 22px rgba(0,0,0,.06); }
+  .row { display: flex; gap: 10px; flex-wrap: wrap; }
+  .col { flex: 1 1 240px; }
+  label { display: block; font-weight: 600; margin: 12px 0 6px; }
+  input, select, textarea { width: 100%; padding: 12px 10px; border: 1px solid #cfd6df; border-radius: 10px; font-size: 16px; }
+  textarea { min-height: 90px; }
+  .help { color: var(--gray); font-size: 13px; margin-top: 6px; }
+  .split { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  @media (max-width:700px){ .split{ grid-template-columns: 1fr; } }
+  .pill { display: inline-block; padding: 8px 12px; border: 1px solid #cfd6df; border-radius: 999px; margin: 6px 6px 0 0; cursor: pointer; user-select: none; }
+  .pill input { display: none; }
+  .pill.active { background: var(--lime); border-color: var(--lime); }
+  .cta { background: var(--navy); color: white; font-weight: 700; padding: 14px 18px; border: 0; border-radius: 12px; font-size: 18px; width: 100%; cursor: pointer; margin-top: 10px; }
+  .hidden { display: none; }
+  .badge { display: inline-block; background: #eef6ff; border: 1px solid #d4e5ff; color: #0b4aa0; border-radius: 8px; padding: 6px 10px; font-size: 13px; margin-top: 6px; }
+  .copywrap { background: #fffef2; border: 1px solid #f5e5a1; border-radius: 10px; padding: 10px; margin-top: 12px; }
+  .small { font-size: 13px; color: var(--gray); }
+</style>
+</head>
+<body>
+  <header>
+    <h1>Schedule a Pickup — <span class="brand">TTravel Logistics LLC</span></h1>
+    <p class="sub">Same day and next day. High roof Sprinter. 143 L × 55 W × 76 H. Up to 3,800 lb.</p>
+    <p class="sub"><strong>Contact</strong> 312 985 6760 • ttravellogisticsllc@gmail.com</p>
+  </header>
+
+  <div class="wrap">
+    <div class="card">
+      <label>Are you contacting us from a company</label>
+      <div id="rolePills">
+        <span class="pill active" data-role="company">Yes, I am with a company</span>
+        <span class="pill" data-role="person">No, I am an individual</span>
+      </div>
+      <div class="help">This changes the questions so we get the right info the first time.</div>
+    </div>
+
+    <form id="formCompany" class="card">
+      <div class="row">
+        <div class="col"><label>Company name</label><input id="c_company" required></div>
+        <div class="col"><label>Your name</label><input id="c_name" required></div>
+      </div>
+      <div class="row">
+        <div class="col"><label>Phone</label><input id="c_phone" required></div>
+        <div class="col"><label>Email</label><input id="c_email" type="email" required></div>
+      </div>
+      <div class="split">
+        <div><label>Touchless at pickup</label><select id="c_touch_pickup"><option>No</option><option>Yes</option></select></div>
+        <div><label>Touchless at delivery</label><select id="c_touch_drop"><option>No</option><option>Yes</option></select></div>
+      </div>
+      <div class="split">
+        <div><label>Pickup dock available</label><select id="c_dock"><option>No</option><option>Yes</option></select></div>
+        <div><label>Forklift or pallet jack at pickup</label><select id="c_lift"><option>None</option><option>Forklift</option><option>Pallet jack</option><option>Both</option></select></div>
+      </div>
+      <label>Commodity or description</label><input id="c_commodity" placeholder="What is the freight">
+      <div class="split">
+        <div><label>Pallets</label><input id="c_pallets" type="number" min="0" placeholder="0"></div>
+        <div><label>Pieces</label><input id="c_pieces" type="number" min="0" placeholder="0"></div>
+      </div>
+      <div class="split">
+        <div><label>Total weight lb</label><input id="c_weight" type="number" min="0" placeholder="0"></div>
+        <div><label>Max item or pallet size in</label><input id="c_dims" placeholder="48 × 40 × 60"></div>
+      </div>
+      <div class="split">
+        <div><label>Hazmat</label><select id="c_haz"><option>No</option><option>Yes</option></select></div>
+        <div><label>Temp control needed</label><select id="c_temp"><option>No</option><option>Yes</option></select></div>
+      </div>
+      <div class="split">
+        <div><label>Pickup address</label><textarea id="c_pu_addr" required></textarea></div>
+        <div><label>Delivery address</label><textarea id="c_do_addr" required></textarea></div>
+      </div>
+      <div class="split">
+        <div><label>Pickup window</label><input id="c_pu_win" placeholder="Date and time range" required></div>
+        <div><label>Delivery window</label><input id="c_do_win" placeholder="Date and time range" required></div>
+      </div>
+      <div class="split">
+        <div><label>Pickup contact name and phone</label><input id="c_pu_ct" placeholder="Name and phone"></div>
+        <div><label>Delivery contact name and phone</label><input id="c_do_ct" placeholder="Name and phone"></div>
+      </div>
+      <label>Accessorials</label>
+      <div class="row">
+        <label class="pill"><input type="checkbox" value="Inside pickup" class="c_acc">Inside pickup</label>
+        <label class="pill"><input type="checkbox" value="Inside delivery" class="c_acc">Inside delivery</label>
+        <label class="pill"><input type="checkbox" value="Limited access" class="c_acc">Limited access</label>
+        <label class="pill"><input type="checkbox" value="Construction site" class="c_acc">Construction site</label>
+        <label class="pill"><input type="checkbox" value="School" class="c_acc">School</label>
+        <label class="pill"><input type="checkbox" value="Hospital" class="c_acc">Hospital</label>
+        <label class="pill"><input type="checkbox" value="Trade show" class="c_acc">Trade show</label>
+        <label class="pill"><input type="checkbox" value="After hours" class="c_acc">After hours</label>
+        <label class="pill"><input type="checkbox" value="Appointment" class="c_acc">Appointment</label>
+      </div>
+      <label>PO or reference optional</label><input id="c_ref" placeholder="PO, RA, or reference">
+      <label>Notes for driver</label><textarea id="c_notes"></textarea>
+      <div class="row"><label class="pill"><input id="c_det" type="checkbox"> I understand detention may apply after quick turn wait time</label></div>
+      <button type="button" class="cta" onclick="submitCompany()">Send pickup request</button>
+      <div id="companyCopy" class="copywrap hidden">
+        <p class="small">If your email app did not open, copy this and email it to <strong>ttravellogisticsllc@gmail.com</strong> or text it to <strong>312 985 6760</strong>.</p>
+        <textarea id="companySummary"></textarea>
+        <button type="button" class="cta" onclick="copyCompany()">Copy text</button>
+      </div>
+    </form>
+
+    <form id="formPerson" class="card hidden">
+      <div class="row">
+        <div class="col"><label>Your name</label><input id="p_name" required></div>
+        <div class="col"><label>Phone</label><input id="p_phone" required></div>
+      </div>
+      <label>Email</label><input id="p_email" type="email">
+      <div class="split">
+        <div><label>Stairs at pickup</label><select id="p_stairs_pu"><option>No</option><option>Yes</option></select></div>
+        <div><label>Stairs at delivery</label><select id="p_stairs_do"><option>No</option><option>Yes</option></select></div>
+      </div>
+      <div class="split">
+        <div><label>Elevator available</label><select id="p_elev"><option>No</option><option>Yes</option></select></div>
+        <div><label>Will someone help load and unload</label><select id="p_help"><option>No</option><option>Yes</option></select></div>
+      </div>
+      <label>What are we moving</label><textarea id="p_items" placeholder="Describe items, count, largest size and weight"></textarea>
+      <div class="split">
+        <div><label>Pickup address</label><textarea id="p_pu_addr" required></textarea></div>
+        <div><label>Delivery address</label><textarea id="p_do_addr" required></textarea></div>
+      </div>
+      <div class="split">
+        <div><label>Pickup date and time window</label><input id="p_pu_win" required></div>
+        <div><label>Delivery date and time window</label><input id="p_do_win" required></div>
+      </div>
+      <label>Payment method</label>
+      <select id="p_pay"><option>Card</option><option>Zelle</option><option>ACH</option><option>Cash on delivery</option></select>
+      <label>Notes for driver</label><textarea id="p_notes"></textarea>
+      <button type="button" class="cta" onclick="submitPerson()">Send pickup request</button>
+      <div id="personCopy" class="copywrap hidden">
+        <p class="small">If your email app did not open, copy this and email it to <strong>ttravellogisticsllc@gmail.com</strong> or text it to <strong>312 985 6760</strong>.</p>
+        <textarea id="personSummary"></textarea>
+        <button type="button" class="cta" onclick="copyPerson()">Copy text</button>
+      </div>
+    </form>
+
+    <div class="card">
+      <div class="badge">What happens next</div>
+      <p class="small">You will get a reply confirming price and pickup window. If this is urgent call 312 985 6760 after you submit.</p>
+    </div>
+    <div class="card">
+      <div class="badge">About</div>
+      <p class="small">TTravel Logistics LLC. Green Bay Wisconsin. Same day and next day across the Midwest. High roof Sprinter 143 L × 55 W × 76 H up to 3,800 lb. One million auto liability and 100k cargo. MC 1741039. DOT 4426346. W9 and COI available on request.</p>
+    </div>
+  </div>
+
+<script>
+  const pills = document.querySelectorAll('#rolePills .pill');
+  const formCompany = document.getElementById('formCompany');
+  const formPerson = document.getElementById('formPerson');
+
+  pills.forEach(p => {
+    p.addEventListener('click', () => {
+      pills.forEach(x => x.classList.remove('active'));
+      p.classList.add('active');
+      const role = p.getAttribute('data-role');
+      if (role === 'company') {
+        formCompany.classList.remove('hidden');
+        formPerson.classList.add('hidden');
+      } else {
+        formPerson.classList.remove('hidden');
+        formCompany.classList.add('hidden');
+      }
+      window.scrollTo({top: 0, behavior: 'smooth'});
+    });
+  });
+
+  function collectChecked(selector) {
+    return Array.from(document.querySelectorAll(selector + ' input[type=checkbox]:checked')).map(x => x.value);
+  }
+
+  function mailto(to, subject, body) {
+    const link = document.createElement('a');
+    link.href = `mailto:${to}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+    link.click();
+  }
+
+  function submitCompany() {
+    const acc = collectChecked('.row');
+    const summary = [
+      "Pickup request — COMPANY",
+      "",
+      "Company: " + document.getElementById('c_company').value,
+      "Contact: " + document.getElementById('c_name').value,
+      "Phone: " + document.getElementById('c_phone').value,
+      "Email: " + document.getElementById('c_email').value,
+      "",
+      "Touchless at pickup: " + document.getElementById('c_touch_pickup').value,
+      "Touchless at delivery: " + document.getElementById('c_touch_drop').value,
+      "Pickup dock available: " + document.getElementById('c_dock').value,
+      "Forklift or pallet jack at pickup: " + document.getElementById('c_lift').value,
+      "",
+      "Commodity: " + document.getElementById('c_commodity').value,
+      "Pallets: " + document.getElementById('c_pallets').value,
+      "Pieces: " + document.getElementById('c_pieces').value,
+      "Total weight lb: " + document.getElementById('c_weight').value,
+      "Max size in: " + document.getElementById('c_dims').value,
+      "",
+      "Hazmat: " + document.getElementById('c_haz').value,
+      "Temp control: " + document.getElementById('c_temp').value,
+      "",
+      "Pickup address: " + document.getElementById('c_pu_addr').value,
+      "Pickup window: " + document.getElementById('c_pu_win').value,
+      "Pickup contact: " + document.getElementById('c_pu_ct').value,
+      "",
+      "Delivery address: " + document.getElementById('c_do_addr').value,
+      "Delivery window: " + document.getElementById('c_do_win').value,
+      "Delivery contact: " + document.getElementById('c_do_ct').value,
+      "",
+      "Accessorials: " + acc.join(", "),
+      "PO or reference: " + document.getElementById('c_ref').value,
+      "Notes: " + document.getElementById('c_notes').value,
+      "",
+      "Detention acknowledgement: " + (document.getElementById('c_det').checked ? "Yes" : "No")
+    ].join("
+");
+
+    document.getElementById('companySummary').value = summary;
+    document.getElementById('companyCopy').classList.remove('hidden');
+    mailto('ttravellogisticsllc@gmail.com', 'Pickup request — COMPANY', summary);
+    window.scrollTo({top: document.getElementById('companyCopy').offsetTop - 10, behavior: 'smooth'});
+  }
+
+  function submitPerson() {
+    const summary = [
+      "Pickup request — INDIVIDUAL",
+      "",
+      "Name: " + document.getElementById('p_name').value,
+      "Phone: " + document.getElementById('p_phone').value,
+      "Email: " + document.getElementById('p_email').value,
+      "",
+      "Stairs at pickup: " + document.getElementById('p_stairs_pu').value,
+      "Stairs at delivery: " + document.getElementById('p_stairs_do').value,
+      "Elevator available: " + document.getElementById('p_elev').value,
+      "Help loading or unloading: " + document.getElementById('p_help').value,
+      "",
+      "Items: " + document.getElementById('p_items').value,
+      "",
+      "Pickup address: " + document.getElementById('p_pu_addr').value,
+      "Pickup window: " + document.getElementById('p_pu_win').value,
+      "",
+      "Delivery address: " + document.getElementById('p_do_addr').value,
+      "Delivery window: " + document.getElementById('p_do_win').value,
+      "",
+      "Payment method: " + document.getElementById('p_pay').value,
+      "Notes: " + document.getElementById('p_notes').value
+    ].join("
+");
+
+    document.getElementById('personSummary').value = summary;
+    document.getElementById('personCopy').classList.remove('hidden');
+    mailto('ttravellogisticsllc@gmail.com', 'Pickup request — INDIVIDUAL', summary);
+    window.scrollTo({top: document.getElementById('personCopy').offsetTop - 10, behavior: 'smooth'});
+  }
+
+  function copyCompany() { document.getElementById('companySummary').select(); document.execCommand('copy'); }
+  function copyPerson() { document.getElementById('personSummary').select(); document.execCommand('copy'); }
+</script>
+</body>
+</html>
