@@ -1,50 +1,60 @@
-# Update index.html per the user's requests:
-# - INDIVIDUAL: time windows in AM/PM, and custom times formatted to AM/PM
-# - COMPANY: review/confirm already present; enforce letters-only name; limit pallets to max 3
-# - COMPANY: split size into separate numeric L, W, H inputs (numbers only)
-html = r"""<!DOCTYPE html>
+# Write updated index.html with:
+# - red asterisks added automatically to all required fields
+# - friendly error when weight > 3,200 lb on company form
+# - privacy sentence under each form
+# - a "Scan to schedule" section that shows two QR codes (pickup + call) using a hosted QR generator
+site_url = "https://ttravellogisticsllc-beep.github.io/ttravel-pickup/"
+owner_phone_e164 = "+13129856760"
+owner_phone_display = "312 985 6760"
+
+html = f"""<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>TTravel Logistics — Schedule a Pickup</title>
 <style>
-  :root { --navy:#0b2341; --lime:#a7e63f; --gray:#5a626e; --light:#f5f7fa; }
-  * { box-sizing: border-box; }
-  body { font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; margin: 0; background: var(--light); color: #111; }
-  header { background: white; padding: 20px 16px; border-bottom: 2px solid #eaecef; text-align: center; }
-  h1 { margin: 0; color: var(--navy); font-size: 22px; }
-  p.sub { margin: 6px 0 0 0; color: var(--gray); font-size: 14px; }
-  .wrap { max-width: 860px; margin: 16px auto 28px; padding: 0 14px 24px; }
-  .card { background: white; border-radius: 14px; padding: 18px; margin-top: 14px; box-shadow: 0 6px 22px rgba(0,0,0,.06); }
-  label { display: block; font-weight: 600; margin: 12px 0 6px; }
-  input, select, textarea { width: 100%; padding: 12px 10px; border: 1px solid #cfd6df; border-radius: 10px; font-size: 16px; }
-  textarea { min-height: 90px; }
-  .help { color: var(--gray); font-size: 13px; margin-top: 6px; }
-  .split { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-  @media (max-width:700px){ .split{ grid-template-columns: 1fr; } }
-  .pills { display:flex; gap:10px; flex-wrap:wrap; }
-  .pill { display:inline-block; padding:10px 14px; border:1px solid #cfd6df; border-radius:999px; cursor:pointer; user-select:none; }
-  .pill.active { background: var(--lime); border-color: var(--lime); }
-  .cta { background: var(--navy); color: white; font-weight: 700; padding: 14px 18px; border: 0; border-radius: 12px; font-size: 18px; width: 100%; cursor: pointer; margin-top: 10px; }
-  .btn { background:#0b4aa0; color:white; border:0; border-radius:10px; padding:10px 12px; font-size:14px; cursor:pointer; }
-  .btn.secondary { background:#5a626e; }
-  .hidden { display:none; }
-  .badge { display:inline-block; background:#eef6ff; border:1px solid #d4e5ff; color:#0b4aa0; border-radius:8px; padding:6px 10px; font-size:13px; margin-top:6px; }
-  .copywrap { background:#fffef2; border:1px solid #f5e5a1; border-radius:10px; padding:10px; margin-top:12px; }
-  .small { font-size:13px; color:var(--gray); }
-  .error { color:#b00020; font-size:13px; display:none; margin-top:6px; }
-  .row-inline { display:flex; gap:8px; align-items:center; flex-wrap:wrap; }
-  .tag { display:inline-block; padding:6px 10px; border:1px solid #cfd6df; border-radius:8px; cursor:pointer; margin-top:6px; }
-  .review { background:#f9fbff; border:1px solid #dbe7ff; border-radius:12px; padding:14px; margin-top:10px; }
-  .review h3 { margin:4px 0 10px; color:#0b4aa0; font-size:18px; }
+  :root {{ --navy:#0b2341; --lime:#a7e63f; --gray:#5a626e; --light:#f5f7fa; }}
+  * {{ box-sizing: border-box; }}
+  body {{ font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; margin: 0; background: var(--light); color: #111; }}
+  header {{ background: white; padding: 20px 16px; border-bottom: 2px solid #eaecef; text-align: center; }}
+  h1 {{ margin: 0; color: var(--navy); font-size: 22px; }}
+  p.sub {{ margin: 6px 0 0 0; color: var(--gray); font-size: 14px; }}
+  .wrap {{ max-width: 860px; margin: 16px auto 28px; padding: 0 14px 24px; }}
+  .card {{ background: white; border-radius: 14px; padding: 18px; margin-top: 14px; box-shadow: 0 6px 22px rgba(0,0,0,.06); }}
+  label {{ display: block; font-weight: 600; margin: 12px 0 6px; }}
+  input, select, textarea {{ width: 100%; padding: 12px 10px; border: 1px solid #cfd6df; border-radius: 10px; font-size: 16px; }}
+  textarea {{ min-height: 90px; }}
+  .help {{ color: var(--gray); font-size: 13px; margin-top: 6px; }}
+  .split {{ display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }}
+  @media (max-width:700px){{ .split{{ grid-template-columns: 1fr; }} }}
+  .pills {{ display:flex; gap:10px; flex-wrap:wrap; }}
+  .pill {{ display:inline-block; padding:10px 14px; border:1px solid #cfd6df; border-radius:999px; cursor:pointer; user-select:none; }}
+  .pill.active {{ background: var(--lime); border-color: var(--lime); }}
+  .cta {{ background: var(--navy); color: white; font-weight: 700; padding: 14px 18px; border: 0; border-radius: 12px; font-size: 18px; width: 100%; cursor: pointer; margin-top: 10px; }}
+  .btn {{ background:#0b4aa0; color:white; border:0; border-radius:10px; padding:10px 12px; font-size:14px; cursor:pointer; }}
+  .btn.secondary {{ background:#5a626e; }}
+  .hidden {{ display:none; }}
+  .badge {{ display:inline-block; background:#eef6ff; border:1px solid #d4e5ff; color:#0b4aa0; border-radius:8px; padding:6px 10px; font-size:13px; margin-top:6px; }}
+  .copywrap {{ background:#fffef2; border:1px solid #f5e5a1; border-radius:10px; padding:10px; margin-top:12px; }}
+  .small {{ font-size:13px; color:var(--gray); }}
+  .error {{ color:#b00020; font-size:13px; display:none; margin-top:6px; }}
+  .row-inline {{ display:flex; gap:8px; align-items:center; flex-wrap:wrap; }}
+  .tag {{ display:inline-block; padding:6px 10px; border:1px solid #cfd6df; border-radius:8px; cursor:pointer; margin-top:6px; }}
+  .review {{ background:#f9fbff; border:1px solid #dbe7ff; border-radius:12px; padding:14px; margin-top:10px; }}
+  .review h3 {{ margin:4px 0 10px; color:#0b4aa0; font-size:18px; }}
+  .req {{ color:#b00020; margin-left:4px; }}
+  .privacy {{ margin-top:10px; color:#5a626e; font-size:13px; }}
+  .qrgrid {{ display:grid; grid-template-columns: 1fr 1fr; gap:16px; align-items:center; }}
+  @media (max-width:700px){{ .qrgrid{{ grid-template-columns:1fr; }} }}
+  .center {{ text-align:center; }}
 </style>
 </head>
 <body>
   <header>
     <h1>Schedule a Pickup — <span class="brand">TTravel Logistics LLC</span></h1>
     <p class="sub">Same day and next day. High roof Sprinter. 143 L × 55 W × 76 H. <strong>Up to 3,200 lb</strong>.</p>
-    <p class="sub"><strong>Contact</strong> 312 985 6760 • ttravellogisticsllc@gmail.com</p>
+    <p class="sub"><strong>Contact</strong> {owner_phone_display} • ttravellogisticsllc@gmail.com</p>
   </header>
 
   <div class="wrap">
@@ -67,14 +77,14 @@ html = r"""<!DOCTYPE html>
         </div>
         <div>
           <label>Your name</label>
-          <input id="c_name" required pattern="[A-Za-z .'\-]+" placeholder="First Last">
+          <input id="c_name" required pattern="[A-Za-z .'\\-]+" placeholder="First Last">
           <div class="error" id="e_c_name">Letters only.</div>
         </div>
       </div>
       <div class="split">
         <div>
           <label>Phone</label>
-          <input id="c_phone" required type="tel" inputmode="tel" pattern="[\d\-\+\(\) ]{7,20}" oninput="digitsOnly(this)" placeholder="(555) 555-5555">
+          <input id="c_phone" required type="tel" inputmode="tel" pattern="[\\d\\-\\+\\(\\) ]{{7,20}}" oninput="digitsOnly(this)" placeholder="(555) 555-5555">
           <div class="error" id="e_c_phone">Valid phone required.</div>
         </div>
         <div>
@@ -111,6 +121,7 @@ html = r"""<!DOCTYPE html>
         <div>
           <label>Total weight (lb)</label>
           <input id="c_weight" type="number" min="0" max="3200" step="1" inputmode="numeric" placeholder="0">
+          <div class="error" id="e_c_weight">Van limit is 3,200 lb.</div>
         </div>
         <div>
           <label>Max size (in)</label>
@@ -175,6 +186,7 @@ html = r"""<!DOCTYPE html>
       <div><label class="pill"><input id="c_det" type="checkbox"> I understand detention may apply after quick-turn wait time</label></div>
 
       <button type="button" class="cta" onclick="reviewCompany()">Review & Send</button>
+      <p class="privacy">We use your info only to schedule your pickup.</p>
 
       <!-- Company Review/Confirm -->
       <div id="reviewCompany" class="review hidden">
@@ -187,17 +199,17 @@ html = r"""<!DOCTYPE html>
       </div>
 
       <div id="companyCopy" class="copywrap hidden">
-        <p class="small">If your email app did not open, copy this and email it to <strong>ttravellogisticsllc@gmail.com</strong> or text it to <strong>312 985 6760</strong>.</p>
+        <p class="small">If your email app did not open, copy this and email it to <strong>ttravellogisticsllc@gmail.com</strong> or text it to <strong>{owner_phone_display}</strong>.</p>
         <textarea id="companySummary"></textarea>
         <button type="button" class="cta" onclick="copyCompany()">Copy text</button>
       </div>
     </form>
 
-    <!-- Individual form with AM/PM windows and Review/Confirm -->
+    <!-- Individual form -->
     <form id="formPerson" class="card hidden" novalidate>
       <div class="split">
-        <div><label>Your name</label><input id="p_name" required pattern="[A-Za-z .'\-]+" placeholder="First Last"><div class="error" id="e_p_name">Letters only.</div></div>
-        <div><label>Phone</label><input id="p_phone" required type="tel" inputmode="tel" pattern="[\d\-\+\(\) ]{7,20}" oninput="digitsOnly(this)" placeholder="(555) 555-5555"><div class="error" id="e_p_phone">Valid phone required.</div></div>
+        <div><label>Your name</label><input id="p_name" required pattern="[A-Za-z .'\\-]+" placeholder="First Last"><div class="error" id="e_p_name">Letters only.</div></div>
+        <div><label>Phone</label><input id="p_phone" required type="tel" inputmode="tel" pattern="[\\d\\-\\+\\(\\) ]{{7,20}}" oninput="digitsOnly(this)" placeholder="(555) 555-5555"><div class="error" id="e_p_phone">Valid phone required.</div></div>
       </div>
       <label>Email</label><input id="p_email" type="email" required placeholder="name@email.com"><div class="error" id="e_p_email">Valid email required.</div>
 
@@ -306,6 +318,7 @@ html = r"""<!DOCTYPE html>
       <textarea id="p_notes" maxlength="400"></textarea>
 
       <button type="button" class="cta" onclick="reviewPerson()">Review & Send</button>
+      <p class="privacy">We use your info only to schedule your pickup.</p>
 
       <!-- Person Review/Confirm -->
       <div id="reviewPerson" class="review hidden">
@@ -318,17 +331,33 @@ html = r"""<!DOCTYPE html>
       </div>
 
       <div id="personCopy" class="copywrap hidden">
-        <p class="small">If your email app did not open, copy this and email it to <strong>ttravellogisticsllc@gmail.com</strong> or text it to <strong>312 985 6760</strong>.</p>
+        <p class="small">If your email app did not open, copy this and email it to <strong>ttravellogisticsllc@gmail.com</strong> or text it to <strong>{owner_phone_display}</strong>.</p>
         <textarea id="personSummary"></textarea>
         <button type="button" class="cta" onclick="copyPerson()">Copy text</button>
       </div>
     </form>
 
     <div class="card">
+      <div class="badge">Scan to schedule</div>
+      <div class="qrgrid">
+        <div class="center">
+          <p><strong>Schedule a Pickup</strong></p>
+          <img alt="QR Schedule Pickup" src="https://api.qrserver.com/v1/create-qr-code/?size=300x300&data={site_url}">
+          <p class="small">Scan with camera</p>
+        </div>
+        <div class="center">
+          <p><strong>Schedule a Call</strong></p>
+          <img alt="QR Schedule Call" src="https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=tel:{owner_phone_e164}">
+          <p class="small">Opens phone dialer</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
       <div class="badge">What happens next</div>
       <p class="small">You will get a reply confirming price and pickup window. If this is urgent, call or text now.</p>
-      <button class="btn" type="button" onclick="window.location.href='tel:+13129856760'">Call now</button>
-      <button class="btn" type="button" onclick="window.location.href='sms:+13129856760'">Text now</button>
+      <button class="btn" type="button" onclick="window.location.href='tel:{owner_phone_e164}'">Call now</button>
+      <button class="btn" type="button" onclick="window.location.href='sms:{owner_phone_e164}'">Text now</button>
     </div>
 
     <div class="card">
@@ -343,93 +372,115 @@ html = r"""<!DOCTYPE html>
   const radios = document.querySelectorAll('input[name=role]');
   const companyForm = document.getElementById('formCompany');
   const personForm = document.getElementById('formPerson');
-  function updateRoleUI() {
+  function updateRoleUI() {{
     const role = document.querySelector('input[name=role]:checked').value;
     pillLabels.forEach(l => l.classList.remove('active'));
-    document.querySelector(`.pills .pill input[value=${role}]`).parentElement.classList.add('active');
-    if (role === 'company') { companyForm.classList.remove('hidden'); personForm.classList.add('hidden'); }
-    else { personForm.classList.remove('hidden'); companyForm.classList.add('hidden'); }
-    window.scrollTo({top: 0, behavior: 'smooth'});
-  }
+    document.querySelector(`.pills .pill input[value=${{role}}]`).parentElement.classList.add('active');
+    if (role === 'company') {{ companyForm.classList.remove('hidden'); personForm.classList.add('hidden'); }}
+    else {{ personForm.classList.remove('hidden'); companyForm.classList.add('hidden'); }}
+    window.scrollTo({{top: 0, behavior: 'smooth'}});
+  }}
   radios.forEach(r => r.addEventListener('change', updateRoleUI));
   updateRoleUI();
 
+  // Add red asterisks to every required field's label
+  function markRequired(){{
+    document.querySelectorAll('input[required], textarea[required], select[required]').forEach(el=>{{
+      const parent = el.parentElement;
+      if(!parent) return;
+      const lab = parent.querySelector('label');
+      if(lab && !lab.querySelector('.req')) {{
+        const s = document.createElement('span'); s.className='req'; s.textContent=' *'; lab.appendChild(s);
+      }}
+    }});
+  }}
+  markRequired();
+
   // Strip letters from phone as you type
-  function digitsOnly(inp){ inp.value = inp.value.replace(/[^0-9+\-() ]/g, ''); }
+  function digitsOnly(inp){{ inp.value = inp.value.replace(/[^0-9+\\-() ]/g, ''); }}
 
   // Toggle custom time rows
-  function toggleCustom(selectId, rowId){
+  function toggleCustom(selectId, rowId){{
     const sel = document.getElementById(selectId);
     const row = document.getElementById(rowId);
-    row.classList.toggle('hidden', sel.value !== 'custom');
-  }
+    if(row){{ row.classList.toggle('hidden', sel.value !== 'custom'); }}
+  }}
 
   // 12-hour AM/PM formatting for custom times
-  function fmt12(t){
+  function fmt12(t){{
     if(!t) return "";
     const [h,m] = t.split(":").map(Number);
     const am = h < 12 || h === 24;
     const h12 = ((h + 11) % 12) + 1;
     const mm = String(m).padStart(2,'0');
-    return `${h12}:${mm} ${am ? 'AM' : 'PM'}`;
-  }
+    return `${{h12}}:${{mm}} ${{am ? 'AM' : 'PM'}}`;
+  }}
 
   // Geocode using OpenStreetMap Nominatim (USA)
-  async function verifyAddress(inputId, statusId){
+  async function verifyAddress(inputId, statusId){{
     const raw = document.getElementById(inputId).value.trim();
     const status = document.getElementById(statusId);
-    if(!raw){ status.textContent = "Please type an address first."; return; }
+    if(!raw){{ status.textContent = "Please type an address first."; return; }}
     status.textContent = "Checking address...";
-    try{
-      const url = `https://nominatim.openstreetmap.org/search?format=json&countrycodes=us&limit=3&q=${encodeURIComponent(raw)}`;
-      const res = await fetch(url, {headers: {"Accept-Language":"en-US"}});
+    try{{
+      const url = `https://nominatim.openstreetmap.org/search?format=json&countrycodes=us&limit=3&q=${{encodeURIComponent(raw)}}`;
+      const res = await fetch(url, {{headers: {{"Accept-Language":"en-US"}}}});
       const data = await res.json();
-      if(!data || data.length===0){ status.textContent = "No matches found. Please check spelling."; return; }
+      if(!data || data.length===0){{ status.textContent = "No matches found. Please check spelling."; return; }}
       const top = data[0];
       status.innerHTML = "Closest match: <strong>"+ top.display_name + "</strong><br>GPS: " + Number(top.lat).toFixed(6) + ", " + Number(top.lon).toFixed(6);
       const mapBtnId = inputId.includes("_pu_") ? (inputId.startsWith("p_")? "map_p_pu":"map_c_pu") : (inputId.startsWith("p_")? "map_p_do":"map_c_do");
       const mapBtn = document.getElementById(mapBtnId);
-      if(mapBtn){ mapBtn.href = `https://maps.google.com/?q=${encodeURIComponent(top.lat+","+top.lon)}`; }
-      if(data.length>1){
-        const alts = data.slice(1).map(x => `<span class="tag" onclick="fillAddress('${inputId}','${(x.display_name).replace(/'/g, "\\'")}','${x.lat}','${x.lon}','${statusId}')">${x.display_name}</span>`).join(' ');
+      if(mapBtn){{ mapBtn.href = `https://maps.google.com/?q=${{encodeURIComponent(top.lat+","+top.lon)}}`; }}
+      if(data.length>1){{
+        const alts = data.slice(1).map(x => `<span class="tag" onclick="fillAddress('${{inputId}}','${{(x.display_name).replace(/'/g, "\\'")}}','${{x.lat}}','${{x.lon}}','${{statusId}}')">${{x.display_name}}</span>`).join(' ');
         status.innerHTML += "<div style='margin-top:6px'>Other matches: "+alts+"</div>";
-      }
-    }catch(e){ status.textContent = "Address check failed. You can still submit."; }
-  }
-  function fillAddress(inputId, disp, lat, lon, statusId){
+      }}
+    }}catch(e){{ status.textContent = "Address check failed. You can still submit."; }}
+  }}
+  function fillAddress(inputId, disp, lat, lon, statusId){{
     document.getElementById(inputId).value = disp;
     const status = document.getElementById(statusId);
     status.innerHTML = "Selected: <strong>"+disp+"</strong><br>GPS: " + Number(lat).toFixed(6) + ", " + Number(lon).toFixed(6);
-  }
+  }}
 
-  function mailto(to, subject, body) {
+  function mailto(to, subject, body) {{
     const a = document.createElement('a');
-    a.href = `mailto:${to}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+    a.href = `mailto:${{to}}?subject=${{encodeURIComponent(subject)}}&body=${{encodeURIComponent(body)}}`;
     a.click();
-  }
+  }}
 
   // Validation helpers
-  function showError(id, show){ const el=document.getElementById(id); if(el) el.style.display = show?'block':'none'; }
-  function requireField(inputId, errId){ const el=document.getElementById(inputId); const ok=el.checkValidity(); showError(errId, !ok); return ok; }
-  function windowText(choiceId, customStartId, customEndId){
+  function showError(id, show){{ const el=document.getElementById(id); if(el) el.style.display = show?'block':'none'; }}
+  function requireField(inputId, errId){{ const el=document.getElementById(inputId); const ok=el.checkValidity(); showError(errId, !ok); return ok; }}
+  function windowText(choiceId, customStartId, customEndId){{
     const choice = document.getElementById(choiceId).value;
     if(choice && choice!=='custom') return choice;
     const s = document.getElementById(customStartId).value;
     const e = document.getElementById(customEndId).value;
     if(s && e) return fmt12(s) + "–" + fmt12(e);
     return "";
-  }
-  function validateWindow(choiceId, startId, endId, errId){
+  }}
+  function validateWindow(choiceId, startId, endId, errId){{
     const choice = document.getElementById(choiceId).value;
     const start = document.getElementById(startId).value;
     const end = document.getElementById(endId).value;
     const ok = (choice && choice!=='custom') || (choice==='custom' && start && end);
     showError(errId, !ok);
     return ok;
-  }
+  }}
+
+  // Company: live weight limit check
+  const cWeight = document.getElementById('c_weight');
+  if(cWeight){{
+    cWeight.addEventListener('input', () => {{
+      const v = parseInt(cWeight.value || '0', 10);
+      showError('e_c_weight', v > 3200);
+    }});
+  }}
 
   // Build text summaries
-  function buildCompanySummary(){
+  function buildCompanySummary(){{
     const acc = Array.from(document.querySelectorAll('.card input[type=checkbox]:checked')).map(x=>x.value);
     const dims = [document.getElementById('c_len').value, document.getElementById('c_wid').value, document.getElementById('c_hei').value].filter(Boolean).join(" × ");
     return [
@@ -467,9 +518,9 @@ html = r"""<!DOCTYPE html>
       "Notes: " + document.getElementById('c_notes').value,
       "",
       "Detention acknowledgement: " + (document.getElementById('c_det').checked ? "Yes" : "No")
-    ].join("\n");
-  }
-  function buildPersonSummary(){
+    ].join("\\n");
+  }}
+  function buildPersonSummary(){{
     const puWin = windowText('p_pu_win_choice','p_pu_custom_start','p_pu_custom_end');
     const doWin = windowText('p_do_win_choice','p_do_custom_start','p_do_custom_end');
     return [
@@ -498,11 +549,11 @@ html = r"""<!DOCTYPE html>
       "",
       "Payment method: " + document.getElementById('p_pay').value,
       "Notes: " + document.getElementById('p_notes').value
-    ].join("\n");
-  }
+    ].join("\\n");
+  }}
 
   // Review/Confirm flows
-  function reviewCompany(){
+  function reviewCompany(){{
     const ok = [
       requireField('c_company','e_c_company'),
       requireField('c_name','e_c_name'),
@@ -513,22 +564,25 @@ html = r"""<!DOCTYPE html>
       requireField('c_pu_win','e_c_pu_win'),
       requireField('c_do_win','e_c_do_win')
     ].every(Boolean);
-    if(!ok){ window.scrollTo({top:0,behavior:'smooth'}); return; }
+    const over = parseInt((document.getElementById('c_weight').value||'0'),10) > 3200;
+    showError('e_c_weight', over);
+    if(!ok || over){{ window.scrollTo({{top:0,behavior:'smooth'}}); return; }}
+
     const text = buildCompanySummary();
     document.getElementById('companyReviewLines').innerText = text;
     document.getElementById('reviewCompany').classList.remove('hidden');
-    window.scrollTo({top: document.getElementById('reviewCompany').offsetTop - 10, behavior:'smooth'});
-  }
-  function editCompany(){ document.getElementById('reviewCompany').classList.add('hidden'); window.scrollTo({top:0,behavior:'smooth'}); }
-  function sendCompany(){
+    window.scrollTo({{top: document.getElementById('reviewCompany').offsetTop - 10, behavior:'smooth'}});
+  }}
+  function editCompany(){{ document.getElementById('reviewCompany').classList.add('hidden'); window.scrollTo({{top:0,behavior:'smooth'}}); }}
+  function sendCompany(){{
     const summary = buildCompanySummary();
     document.getElementById('companySummary').value = summary;
     document.getElementById('companyCopy').classList.remove('hidden');
     mailto('ttravellogisticsllc@gmail.com','Pickup request — COMPANY',summary);
-    window.scrollTo({top: document.getElementById('companyCopy').offsetTop - 10, behavior:'smooth'});
-  }
+    window.scrollTo({{top: document.getElementById('companyCopy').offsetTop - 10, behavior:'smooth'}});
+  }}
 
-  function reviewPerson(){
+  function reviewPerson(){{
     const ok = [
       requireField('p_name','e_p_name'),
       requireField('p_phone','e_p_phone'),
@@ -540,24 +594,25 @@ html = r"""<!DOCTYPE html>
       validateWindow('p_pu_win_choice','p_pu_custom_start','p_pu_custom_end','e_p_pu_win'),
       validateWindow('p_do_win_choice','p_do_custom_start','p_do_custom_end','e_p_do_win')
     ].every(Boolean);
-    if(!ok){ window.scrollTo({top:0,behavior:'smooth'}); return; }
+    if(!ok){{ window.scrollTo({{top:0,behavior:'smooth'}}); return; }}
     const text = buildPersonSummary();
     document.getElementById('personReviewLines').innerText = text;
     document.getElementById('reviewPerson').classList.remove('hidden');
-    window.scrollTo({top: document.getElementById('reviewPerson').offsetTop - 10, behavior:'smooth'});
-  }
-  function editPerson(){ document.getElementById('reviewPerson').classList.add('hidden'); window.scrollTo({top:0,behavior:'smooth'}); }
-  function sendPerson(){
+    window.scrollTo({{top: document.getElementById('reviewPerson').offsetTop - 10, behavior:'smooth'}});
+  }}
+  function editPerson(){{ document.getElementById('reviewPerson').classList.add('hidden'); window.scrollTo({{top:0,behavior:'smooth'}}); }}
+  function sendPerson(){{
     const summary = buildPersonSummary();
     document.getElementById('personSummary').value = summary;
     document.getElementById('personCopy').classList.remove('hidden');
     mailto('ttravellogisticsllc@gmail.com','Pickup request — INDIVIDUAL',summary);
-    window.scrollTo({top: document.getElementById('personCopy').offsetTop - 10, behavior:'smooth'});
-  }
+    window.scrollTo({{top: document.getElementById('personCopy').offsetTop - 10, behavior:'smooth'}});
+  }}
 </script>
 </body>
 </html>"""
-path = "/mnt/data/index.html"
-with open(path, "w", encoding="utf-8") as f:
+
+with open("/mnt/data/index.html", "w", encoding="utf-8") as f:
     f.write(html)
-path
+
+"/mnt/data/index.html"
